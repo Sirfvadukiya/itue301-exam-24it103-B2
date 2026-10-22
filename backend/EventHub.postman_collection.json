@@ -1,0 +1,359 @@
+{
+  "info": {
+    "name": "EventHub API (ITUE301 Set F)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "eventId",
+      "value": ""
+    },
+    {
+      "key": "ticketId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (attendee)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"attendee@eventhub.com\",\n  \"password\": \"attendee123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.token) pm.collectionVariables.set('token', d.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (organizer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"organizer@eventhub.com\",\n  \"password\": \"organizer123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.token) pm.collectionVariables.set('token', d.token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Get all events (public)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "const e = d.data && d.data.find(x => x.ticketsAvailable > 0);",
+                  "if (e) pm.collectionVariables.set('eventId', e._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create event (organizer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Hackathon 2026\",\n  \"category\": \"Technology\",\n  \"date\": \"2026-12-15\",\n  \"venue\": \"CSPIT Lab\",\n  \"ticketsAvailable\": 100\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tickets",
+      "item": [
+        {
+          "name": "Book tickets (expect 201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tickets"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"quantity\": 2\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.data) pm.collectionVariables.set('ticketId', d.data._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Book too many (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tickets"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"quantity\": 9999\n}"
+            }
+          }
+        },
+        {
+          "name": "My tickets (populated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tickets/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tickets",
+                "my"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel ticket",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tickets/{{ticketId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tickets",
+                "{{ticketId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}"
+            }
+          }
+        },
+        {
+          "name": "No token (expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tickets/my",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tickets",
+                "my"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
